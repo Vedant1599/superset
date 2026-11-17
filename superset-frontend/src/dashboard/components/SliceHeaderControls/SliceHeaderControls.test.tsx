@@ -161,8 +161,8 @@ test('Should render default props', () => {
     screen.getByRole('menuitem', { name: /Force refresh/ }),
   ).toBeInTheDocument();
   expect(
-    screen.getByRole('menuitem', { name: 'Show chart description' }),
-  ).toBeInTheDocument();
+    screen.queryByRole('menuitem', { name: 'Show chart description' }),
+  ).not.toBeInTheDocument();
   expect(
     screen.getByRole('menuitem', { name: 'Edit chart' }),
   ).toBeInTheDocument();
@@ -263,15 +263,6 @@ test('Should not show export full Excel if report is not table', async () => {
   userEvent.hover(screen.getByText('Download'));
   expect(await screen.findByText('Export to Excel')).toBeInTheDocument();
   expect(screen.queryByText('Export to full Excel')).not.toBeInTheDocument();
-});
-
-test('Should "Show chart description"', () => {
-  const props = createProps();
-  renderWrapper(props);
-  expect(props.toggleExpandSlice).toBeCalledTimes(0);
-  userEvent.click(screen.getByText('Show chart description'));
-  expect(props.toggleExpandSlice).toBeCalledTimes(1);
-  expect(props.toggleExpandSlice).toBeCalledWith(371);
 });
 
 test('Should "Force refresh"', () => {

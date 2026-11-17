@@ -127,7 +127,6 @@ class Chart extends Component {
     this.state = {
       width: props.width,
       height: props.height,
-      descriptionHeight: 0,
     };
 
     this.changeFilter = this.changeFilter.bind(this);
@@ -140,10 +139,8 @@ class Chart extends Component {
     this.exportFullXLSX = this.exportFullXLSX.bind(this);
     this.forceRefresh = this.forceRefresh.bind(this);
     this.resize = debounce(this.resize.bind(this), RESIZE_TIMEOUT);
-    this.setDescriptionRef = this.setDescriptionRef.bind(this);
     this.setHeaderRef = this.setHeaderRef.bind(this);
     this.getChartHeight = this.getChartHeight.bind(this);
-    this.getDescriptionHeight = this.getDescriptionHeight.bind(this);
   }
 
   shouldComponentUpdate(nextProps, nextState) {
@@ -153,7 +150,6 @@ class Chart extends Component {
     if (
       nextState.width !== this.state.width ||
       nextState.height !== this.state.height ||
-      nextState.descriptionHeight !== this.state.descriptionHeight ||
       !isEqual(nextProps.datasource, this.props.datasource)
     ) {
       return true;
@@ -211,37 +207,13 @@ class Chart extends Component {
     return this.props.cacheBusterProp !== nextProps.cacheBusterProp;
   }
 
-  componentDidMount() {
-    if (this.props.isExpanded) {
-      const descriptionHeight = this.getDescriptionHeight();
-      this.setState({ descriptionHeight });
-    }
-  }
-
   componentWillUnmount() {
     this.resize.cancel();
   }
 
-  componentDidUpdate(prevProps) {
-    if (this.props.isExpanded !== prevProps.isExpanded) {
-      const descriptionHeight = this.getDescriptionHeight();
-      // eslint-disable-next-line react/no-did-update-set-state
-      this.setState({ descriptionHeight });
-    }
-  }
-
-  getDescriptionHeight() {
-    return this.props.isExpanded && this.descriptionRef
-      ? this.descriptionRef.offsetHeight
-      : 0;
-  }
-
   getChartHeight() {
     const headerHeight = this.getHeaderHeight();
-    return Math.max(
-      this.state.height - headerHeight - this.state.descriptionHeight,
-      20,
-    );
+    return Math.max(this.state.height - headerHeight, 20);
   }
 
   getHeaderHeight() {
@@ -253,10 +225,6 @@ class Chart extends Component {
       return this.headerRef.offsetHeight + marginBottom;
     }
     return DEFAULT_HEADER_HEIGHT;
-  }
-
-  setDescriptionRef(ref) {
-    this.descriptionRef = ref;
   }
 
   setHeaderRef(ref) {
@@ -470,23 +438,6 @@ class Chart extends Component {
           width={width}
           height={this.getHeaderHeight()}
         />
-
-        {/*
-          This usage of dangerouslySetInnerHTML is safe since it is being used to render
-          markdown that is sanitized with nh3. See:
-             https://github.com/apache/superset/pull/4390
-          and
-             https://github.com/apache/superset/pull/23862
-        */}
-        {isExpanded && slice.description_markeddown && (
-          <div
-            className="slice_description bs-callout bs-callout-default"
-            ref={this.setDescriptionRef}
-            // eslint-disable-next-line react/no-danger
-            dangerouslySetInnerHTML={{ __html: slice.description_markeddown }}
-            role="complementary"
-          />
-        )}
 
         <ChartWrapper
           className={cx('dashboard-chart')}

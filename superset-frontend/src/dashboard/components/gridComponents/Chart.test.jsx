@@ -88,19 +88,9 @@ test('should render a ChartContainer', () => {
   expect(getByTestId('chart-container')).toBeInTheDocument();
 });
 
-test('should render a description if it has one and isExpanded=true', () => {
+test('should not render an inline description, even if isExpanded=true', () => {
   const { container } = setup({ isExpanded: true });
-  expect(container.querySelector('.slice_description')).toBeInTheDocument();
-});
-
-test('should calculate the description height if it has one and isExpanded=true', () => {
-  const spy = jest.spyOn(
-    Chart.WrappedComponent.prototype,
-    'getDescriptionHeight',
-  );
-  const { container } = setup({ isExpanded: true });
-  expect(container.querySelector('.slice_description')).toBeInTheDocument();
-  expect(spy).toHaveBeenCalled();
+  expect(container.querySelector('.slice_description')).not.toBeInTheDocument();
 });
 
 test('should call refreshChart when SliceHeader calls forceRefresh', () => {

@@ -21,6 +21,7 @@ import { createMemoryHistory } from 'history';
 import { getExtensionsRegistry } from '@superset-ui/core';
 import { render, screen } from 'spec/helpers/testing-library';
 import userEvent from '@testing-library/user-event';
+import { UiConfigContext } from 'src/components/UiConfigContext';
 import SliceHeader from '.';
 
 jest.mock('src/dashboard/components/SliceHeaderControls', () => ({
@@ -483,4 +484,73 @@ test('Add extension to SliceHeader', () => {
   render(<SliceHeader {...props} />, { useRedux: true, useRouter: true });
 
   expect(screen.getByText('This is an extension')).toBeInTheDocument();
+});
+
+const createPropsWithDescription = (overrides: any = {}) =>
+  createProps({
+    slice: {
+      ...createProps().slice,
+      description: 'Vaccine candidates by stage',
+      description_markeddown: '<p>Vaccine candidates by stage</p>',
+    },
+    ...overrides,
+  });
+
+test('Should show the chart description in a tooltip on hover', async () => {
+  const props = createPropsWithDescription();
+  render(<SliceHeader {...props} />, { useRedux: true, useRouter: true });
+
+  userEvent.hover(screen.getByRole('button', { name: 'Chart description' }));
+  expect(
+    await screen.findByText('Vaccine candidates by stage'),
+  ).toBeInTheDocument();
+});
+
+test.each(['', '   '])(
+  'Should not show the description button when the description is %p',
+  description => {
+    const props = createProps({
+      slice: {
+        ...createProps().slice,
+        description,
+        description_markeddown: '',
+      },
+    });
+    render(<SliceHeader {...props} />, { useRedux: true, useRouter: true });
+
+    expect(
+      screen.queryByRole('button', { name: 'Chart description' }),
+    ).not.toBeInTheDocument();
+  },
+);
+
+test('Should show the description button when chart controls are hidden', () => {
+  const props = createPropsWithDescription();
+  render(
+    <UiConfigContext.Provider
+      value={{
+        hideTitle: false,
+        hideTab: false,
+        hideNav: false,
+        hideChartControls: true,
+      }}
+    >
+      <SliceHeader {...props} />
+    </UiConfigContext.Provider>,
+    { useRedux: true, useRouter: true },
+  );
+
+  expect(
+    screen.getByRole('button', { name: 'Chart description' }),
+  ).toBeInTheDocument();
+  expect(screen.queryByTestId('SliceHeaderControls')).not.toBeInTheDocument();
+});
+
+test('Should not show the description button in edit mode', () => {
+  const props = createPropsWithDescription({ editMode: true });
+  render(<SliceHeader {...props} />, { useRedux: true, useRouter: true });
+
+  expect(
+    screen.queryByRole('button', { name: 'Chart description' }),
+  ).not.toBeInTheDocument();
 });

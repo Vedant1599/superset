@@ -57,6 +57,53 @@ const CrossFilterIcon = styled(Icons.ApartmentOutlined)`
   `}
 `;
 
+const DescriptionButton = styled.button`
+  ${({ theme }) => css`
+    display: flex;
+    align-items: center;
+    padding: 0;
+    border: none;
+    background: none;
+    cursor: help;
+    color: ${theme.colors.grayscale.base};
+
+    &:hover,
+    &:focus-visible {
+      color: ${theme.colors.grayscale.dark1};
+    }
+
+    &:focus-visible {
+      outline: 1px solid ${theme.colors.primary.base};
+      outline-offset: 2px;
+      border-radius: ${theme.borderRadius}px;
+    }
+  `}
+`;
+
+// Rendered inside the dark tooltip, so markdown output needs light-on-dark styling.
+const DescriptionContent = styled.div`
+  ${({ theme }) => css`
+    font-weight: ${theme.typography.weights.normal};
+    white-space: normal;
+    overflow-wrap: anywhere;
+
+    p,
+    ul,
+    ol {
+      margin: 0 0 ${theme.gridUnit}px;
+    }
+
+    & > :last-child {
+      margin-bottom: 0;
+    }
+
+    a {
+      color: ${theme.colors.grayscale.light5};
+      text-decoration: underline;
+    }
+  `}
+`;
+
 const ChartHeaderStyles = styled.div`
   ${({ theme }) => css`
     font-size: ${theme.typography.sizes.l}px;
@@ -189,6 +236,21 @@ const SliceHeader: FC<SliceHeaderProps> = ({
 
   const exploreUrl = `/explore/?dashboard_page_id=${dashboardPageId}&slice_id=${slice.slice_id}`;
 
+  const hasDescription = !!slice.description?.trim();
+
+  // This usage of dangerouslySetInnerHTML is safe since description_markeddown is
+  // markdown sanitized with nh3 on the backend. See:
+  //   https://github.com/apache/superset/pull/4390
+  //   https://github.com/apache/superset/pull/23862
+  const descriptionTooltip = slice.description_markeddown ? (
+    <DescriptionContent
+      // eslint-disable-next-line react/no-danger
+      dangerouslySetInnerHTML={{ __html: slice.description_markeddown }}
+    />
+  ) : (
+    <DescriptionContent>{slice.description}</DescriptionContent>
+  );
+
   return (
     <ChartHeaderStyles data-test="slice-header" ref={innerRef}>
       <div className="header-title" ref={headerRef}>
@@ -254,6 +316,22 @@ const SliceHeader: FC<SliceHeaderProps> = ({
             )}
             {!uiConfig.hideChartControls && (
               <FiltersBadge chartId={slice.slice_id} />
+            )}
+            {/* Shown even with hideChartControls so embedded viewers get it too */}
+            {hasDescription && (
+              <Tooltip
+                placement="topRight"
+                trigger={['hover', 'focus']}
+                title={descriptionTooltip}
+              >
+                <DescriptionButton
+                  type="button"
+                  aria-label={t('Chart description')}
+                  data-test="slice-description-button"
+                >
+                  <Icons.InfoCircleOutlined iconSize="m" aria-hidden />
+                </DescriptionButton>
+              </Tooltip>
             )}
             {!uiConfig.hideChartControls && (
               <SliceHeaderControls

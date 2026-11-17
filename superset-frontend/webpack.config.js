@@ -43,7 +43,8 @@ const ROOT_DIR = path.resolve(__dirname, '..');
 
 const {
   mode = 'development',
-  devserverPort = 9000,
+  // webpack-cli 5 rejects --devserverPort, so allow the port via env as well.
+  devserverPort = Number(process.env.DEVSERVER_PORT) || 9000,
   measure = false,
   analyzeBundle = false,
   analyzerPort = 8888,

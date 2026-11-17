@@ -128,6 +128,7 @@ const VerticalDotsTrigger = () => (
 export interface SliceHeaderControlsProps {
   slice: {
     description: string;
+    description_markeddown?: string;
     viz_type: string;
     slice_name: string;
     slice_id: number;
@@ -591,10 +592,6 @@ const SliceHeaderControls = (props: SliceHeaderControlsPropsWithRouter) => {
         refreshChart();
         props.addSuccessToast(t('Data refreshed'));
         break;
-      case MenuKeys.ToggleChartDescription:
-        // eslint-disable-next-line no-unused-expressions
-        props.toggleExpandSlice?.(props.slice.slice_id);
-        break;
       case MenuKeys.ExploreChart:
         // eslint-disable-next-line no-unused-expressions
         props.logExploreChart?.(props.slice.slice_id);
@@ -757,14 +754,6 @@ const SliceHeaderControls = (props: SliceHeaderControlsPropsWithRouter) => {
 
       <Menu.Divider />
 
-      {slice.description && (
-        <Menu.Item key={MenuKeys.ToggleChartDescription}>
-          {props.isDescriptionExpanded
-            ? t('Hide chart description')
-            : t('Show chart description')}
-        </Menu.Item>
-      )}
-
       {canExplore && (
         <Menu.Item key={MenuKeys.ExploreChart}>
           <Tooltip title={getSliceHeaderTooltip(props.slice.slice_name)}>
@@ -833,7 +822,7 @@ const SliceHeaderControls = (props: SliceHeaderControlsPropsWithRouter) => {
         />
       )}
 
-      {(slice.description || canExplore) && <Menu.Divider />}
+      {canExplore && <Menu.Divider />}
 
       {supersetCanShare && (
         <Menu.SubMenu
